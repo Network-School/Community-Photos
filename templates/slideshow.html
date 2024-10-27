@@ -1,0 +1,225 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NS Community Photos - Dark Theme</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+         :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #bb86fc;
+            --secondary-color: #03dac6;
+            --text-color: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+        }
+        
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        h1 {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px rgba(187, 134, 252, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        h1:hover {
+            transform: scale(1.05);
+        }
+        
+        #slideshow {
+            position: relative;
+            width: 90vw;
+            max-width: 1000px;
+            height: 60vh;
+            max-height: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background-color: var(--surface-color);
+        }
+        
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: scale(1.1);
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .slide img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+        }
+        
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(187, 134, 252, 0.2);
+            color: var(--text-color);
+            border: none;
+            font-size: 24px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .nav-button:hover {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+        }
+        
+        #prev {
+            left: 20px;
+        }
+        
+        #next {
+            right: 20px;
+        }
+        
+        .submit-link {
+            margin-top: 30px;
+            padding: 12px 24px;
+            background-color: var(--secondary-color);
+            color: var(--bg-color);
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+        
+        .submit-link:hover {
+            background-color: #04b39d;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(3, 218, 198, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            #slideshow {
+                height: 50vh;
+            }
+            .nav-button {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>NS Community Photos</h1>
+        <div id="slideshow">
+            {% for photo in photos %}
+            <div class="slide {% if loop.index == 1 %}active{% endif %}">
+                <img src="{{ url_for('static', filename='accepted/' + photo) }}" alt="Community Photo {{ loop.index }}">
+            </div>
+            {% endfor %}
+            <button id="prev" class="nav-button">&#10094;</button>
+            <button id="next" class="nav-button">&#10095;</button>
+        </div>
+        <a href="http://127.0.0.1:5000/submit" class="submit-link">Submit Your Photos: http://127.0.0.1:5000/submit</a>
+        <p>Help develop this: Discord Robs and join github.com/Network-School</p>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevButton = document.getElementById('prev');
+        const nextButton = document.getElementById('next');
+        let currentIndex = 0;
+
+        function showSlide(index) {
+            slides[currentIndex].classList.remove('active');
+            slides[index].classList.add('active');
+            currentIndex = index;
+        }
+
+        function nextSlide() {
+            showSlide((currentIndex + 1) % slides.length);
+        }
+
+        function prevSlide() {
+            showSlide((currentIndex - 1 + slides.length) % slides.length);
+        }
+
+        prevButton.addEventListener('click', prevSlide);
+        nextButton.addEventListener('click', nextSlide);
+
+        // Auto-advance slides every 2 seconds
+        setInterval(nextSlide, 2000);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === 'ArrowRight') nextSlide();
+        });
+
+        // Touch swipe functionality
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.getElementById('slideshow').addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+
+        document.getElementById('slideshow').addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX) nextSlide();
+            if (touchEndX > touchStartX) prevSlide();
+        }
+    </script>
+</body>
+
+</html>
